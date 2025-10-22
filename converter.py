@@ -5,7 +5,7 @@ Excel/CSV to XLS (Excel 97-2003) Converter
 Drag-n-Drop을 지원하며, '1234' 암호를 자동으로 처리하고 제거합니다.
 
 - 작성자: DongHyun LEE
-- 버전: 1.5.3
+- 버전: 1.5.5
 - 최종 수정일: 2025-10-22
 """
 
@@ -20,9 +20,8 @@ import pythoncom  # COM 초기화를 위해 추가
 
 # --- 상수 정의 (Constants) ---
 __author__ = "DongHyun LEE"
-__version__ = "1.5.3"
+__version__ = "1.5.5"
 __last_modified__ = "2025-10-22"
-__contact__ = "ilbeolle@gmail.com"
 
 # Excel 파일 포맷 상수
 XL_EXCEL8 = 56  # .xls (Excel 97-2003)
@@ -34,14 +33,14 @@ DEFAULT_PASSWORD = "1234"
 
 # 색상 정의 (Color Palette)
 init(autoreset=True)
-C_TEXT = Fore.WHITE + Back.BLACK
-C_TITLE = Style.BRIGHT + Fore.CYAN + Back.BLACK
-C_AUTHOR = Style.BRIGHT + Fore.YELLOW + Back.BLACK
-C_SUCCESS = Style.BRIGHT + Fore.GREEN + Back.BLACK
-C_ERROR = Style.BRIGHT + Fore.RED + Back.BLACK
-C_HELP = Fore.LIGHTBLACK_EX + Back.BLACK
-C_CMD = Fore.MAGENTA + Back.BLACK
-C_WARN = Fore.LIGHTYELLOW_EX + Back.BLACK
+C_TEXT = Fore.LIGHTWHITE_EX + Back.BLACK  # 흰색을 부드러운 밝은 회색으로 변경
+C_TITLE = Style.BRIGHT + Fore.LIGHTCYAN_EX + Back.BLACK  # 청록색을 더 부드러운 톤으로
+C_AUTHOR = Style.BRIGHT + Fore.LIGHTYELLOW_EX + Back.BLACK  # 노란색 유지 (이미 부드러움)
+C_SUCCESS = Style.BRIGHT + Fore.LIGHTGREEN_EX + Back.BLACK  # 초록색을 부드러운 톤으로
+C_ERROR = Style.BRIGHT + Fore.LIGHTRED_EX + Back.BLACK  # 빨간색을 부드러운 톤으로
+C_HELP = Fore.LIGHTBLACK_EX + Back.BLACK  # 도움말 색상 유지
+C_CMD = Fore.LIGHTMAGENTA_EX + Back.BLACK  # 명령어 색상을 부드러운 톤으로
+C_WARN = Fore.LIGHTYELLOW_EX + Back.BLACK  # 경고 색상 유지
 
 # 로깅 설정 (파일 생성 제거, 콘솔에만 출력)
 logging.basicConfig(
@@ -61,36 +60,32 @@ def print_splash():
     print(C_TITLE + "==========================================================")
     print(C_AUTHOR + f"  - 작성자: {__author__}")
     print(C_AUTHOR + f"  - 최종 수정일: {__last_modified__}")
-    print(C_AUTHOR + f"  - 연락처: {__contact__}")
     print(C_TEXT)
 
 def print_help():
     """사용 방법(Help)을 더 쉽게 인식할 수 있도록 단계별로 출력합니다."""
     print(f"{C_TITLE}\n[ 사용 가이드 ]")
-    print(f"{C_HELP}----------------------------------------------------------")
-    print(f"{C_TEXT}이 프로그램은 최신 Excel(.xlsx, .xls) 또는 CSV(.csv) 파일을")
-    print(f"{C_TEXT}오래된 Excel 97-2003(.xls) 형식으로 바꿔줍니다.")
-    print(f"{C_TEXT}암호가 '1234'인 파일도 자동으로 풀고, 변환 후 암호를 없앱니다.")
-    print(f"{C_TEXT}네이버 스마트스토어, ESM Plus(G마켓, 옥션), 현대이지웰(복지몰)에 대응 가능합니다.")
-    print(f"{C_TEXT}쿠팡, 11번가는 확인이 필요합니다.")
+    print(f"{C_TEXT}  - 이 프로그램은 최신 Excel(.xlsx, .xls) 또는 CSV(.csv) 파일을 오래된 Excel 97-2003(.xls) 형식으로 바꿉니다.")
+    print(f"{C_TEXT}  - 암호가 '1234'인 파일을 자동으로 풀고, 변환 후 암호를 제거합니다.")
+    print(f"{C_TEXT}  - 네이버 스마트스토어, ESM Plus(G마켓, 옥션), 현대이지웰(복지몰)에 대응합니다.")
+    print(f"{C_TEXT}  - 쿠팡 및 11번가는 추후 확인이 필요합니다.")
     
-    print(f"{C_TITLE}\n[ 쉬운 방법: 자동 모드 ]")
+    print(f"{C_TITLE}\n[ 쉬운 방법: 복수 자동 모드 ]")
     print(f"{C_TEXT}  1. 변환할 파일(들)을 마우스로 선택하세요.")
     print(f"{C_TEXT}  2. 선택한 파일을 이 프로그램(.exe) 아이콘 위로 끌어다 놓으세요.")
-    print(f"{C_TEXT}  3. 자동으로 변환되어 바탕화면에 저장됩니다.")
-    print(f"{C_TEXT}  4. 작업 끝나면 Enter 키를 눌러 창을 닫으세요.")
+    print(f"{C_TEXT}  3. 자동으로 변환되어 바탕화면에 저장합니다.")
 
-    print(f"{C_TITLE}\n[ 고급 방법: 대화형 모드 ]")
+    print(f"{C_TITLE}\n[ 고급 방법: 단일 대화 모드 ]")
     print(f"{C_TEXT}  1. 프로그램(.exe)을 더블클릭해서 검은 창(CMD)을 열으세요.")
     print(f"{C_TEXT}  2. 변환할 파일을 이 검은 창으로 끌어다 놓으세요.")
-    print(f"{C_TEXT}  3. 검은 창에서 Enter 키를 누르면 변환 시작합니다!")
+    print(f"{C_TEXT}  3. 검은 창에서 Enter 키를 누르면 변환을 시작합니다!")
     
     print(f"{C_TITLE}\n[ 변환 시 알아둘 점 ]")
-    print(f"{C_HELP}  - 저장 위치: 항상 로컬 바탕화면(C:\\Users\\[사용자(컴퓨터)의 이름]\\Desktop)에 저장됩니다.")
-    print(f"{C_HELP}  - 파일 이름: 원본 이름 그대로 (예: orderList.xlsx → orderList.xls).")
+    print(f"{C_HELP}  - 저장 위치: 항상 로컬 바탕화면(C:\\Users\\[사용자]\\Desktop)에 저장합니다.")
+    print(f"{C_HELP}  - 파일 이름: 원본 이름 그대로(예: orderList.xlsx → orderList.xls) 저장합니다.")
     print(f"{C_HELP}  - 이미 같은 이름의 .xls 파일이 있다면 자동으로 지우고 새로 저장합니다.")
-    print(f"{C_HELP}  - 지울 수 없으면 숫자 붙여서 저장합니다. (예: orderList_1.xls), Excel에서 파일을 닫아주세요.")
-    print(f"{C_HELP}  - 변환을 마치면 바탕화면 폴더가 자동으로 열립니다.")
+    print(f"{C_HELP}  - 지울 수 없으면 숫자 붙여서 저장합니다. (예: orderList_1.xls)")
+    print(f"{C_HELP}  - 변환을 마치면 바탕화면 폴더가 자동으로 열리며, 작업이 끝났다면 Enter 키를 눌러 창을 닫으세요.")
     
     print(f"{C_TITLE}\n[ 명령어 (검은 창에서 입력) ]")
     print(f"{C_TEXT}  {C_CMD}--help{C_TEXT}: 이 가이드 다시 보기.")
@@ -98,7 +93,7 @@ def print_help():
     print(f"{C_TEXT}  {C_CMD}exit 또는 quit{C_TEXT}: 프로그램 종료.")
     
     print(f"{C_WARN}\n[ 주의사항 (문제 발생 시 확인) ]")
-    print(f"{C_WARN}  - Microsoft Excel이 컴퓨터에 설치되어 있어야 합니다.")
+    print(f"{C_WARN}  - 반드시 Microsoft Excel이 컴퓨터에 설치되어 있어야 합니다.")
     print(f"{C_WARN}  - 변환 전에, 저장될 파일(예: orderList.xls)이 Excel에서 열려 있지 않은지 확인하세요.")
     print(f"{C_WARN}  - OneDrive나 클라우드 폴더에 파일이 있으면 잠길 수 있습니다. 로컬 바탕화면에 복사해서 사용하세요.")
     print(f"{C_WARN}  - 문제가 생기면 오류 메시지를 읽고, Excel을 닫거나 파일 경로를 확인하세요.")
