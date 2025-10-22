@@ -73,7 +73,9 @@
   - 백그라운드 Excel 프로세스 종료: 작업 관리자에서 `EXCEL.EXE` 종료.
   - PyInstaller 재빌드: 위 명령어로 캐시 정리 후 재생성.
  
-# ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ?
+# 똑같은 프로그램을 만드는 방법
+
+- 이 프로그램을 분실했을 때, 똑같이 만들기 위한 메모임.
 
 ## 설치 및 설정
 
@@ -157,6 +159,15 @@ pyinstaller --onefile --console --noupx --clean --icon=icon.ico --name=ExcelConv
 
 - 생성된 파일: `C:\Users\[사용자]\OneDrive\문서\projects\dist\ExcelConverter.exe`
 - 실행: `dist\ExcelConverter.exe`를 더블클릭하거나 CMD에서 실행.
+
+## 기타
+
+- **아이콘 설정**: `icon.ico`는 프로젝트 폴더에 위치해야 하며, 유효한 .ico 형식이어야 함. 무료 아이콘은 Icons8 또는 Flaticon에서 다운로드 가능.
+- **디버깅**: 문제가 지속되면 다음 명령어로 로그 확인:
+
+  ```bash
+  pyinstaller --onefile --console --noupx --clean --icon=icon.ico --name=ExcelConverter --log-level DEBUG converter.py
+  ```
 
 ## 문의
 
