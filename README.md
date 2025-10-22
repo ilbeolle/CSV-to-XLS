@@ -1,67 +1,163 @@
-# CSV-to-XLS
-설명
----
-신 버전의 엑셀 파일을 구 버전의 엑셀 파일로 변형합니다.
+# Excel/CSV to XLS Converter
 
-사내 시스템에 업로드하기 위한 알맞은 엑셀 형식으로 바꾸기 위해 사용합니다.
+## 설명
 
-네이버 스마트 스토어의 주문 정보 엑셀 파일., 비밀번호는 항상 '**1234**'이어야 합니다. (대응 가능)
+이 프로그램은 최신 Excel 파일(`.xlsx`, `.xls`) 또는 CSV 파일(`.csv`)을 구형 Excel 97-2003 형식(`.xls`)으로 변환합니다. 사내 시스템(예: 네이버 스마트 스토어, ESM Plus, 현대 이지웰 복지몰) 업로드를 위해 최적화된 형식으로 변환하며, 비밀번호(`1234`)가 설정된 파일을 자동으로 처리하고 변환 후 비밀번호를 제거합니다.
 
-ESM Plus (Gmarket, Auction)의 발송관리 엑셀 파일., 신규주문 관리가 아닙니다. (대응 가능)
+### 지원 플랫폼
 
-현대 이지웰의 복지몰의 CSV 파일. 이때, 원하는 고객만 추려서 다운로드할 필요가 있습니다. (대응 가능)
+- **네이버 스마트 스토어**: 주문 정보 Excel 파일(비밀번호: `1234`) 변환 가능.
+- **ESM Plus (G마켓, 옥션)**: 발송 관리 Excel 파일 변환 가능 (신규 주문 관리 아님).
+- **현대 이지웰 복지몰**: CSV 파일 변환 가능 (고객 필터링 후 다운로드 필요).
+- **11번가, 쿠팡**: 변환 가능 여부 확인 중.
 
-11번가 엑셀 파일 확인 중... (대응 가능 여부 모름)
+### 주요 기능
 
-CMD 창 내로 변환하고자 하는 엑셀 파일을 끌어다 놓고, Enter 키를 입력하는 것으로 변환
+- **Drag-n-Drop 지원**: 파일을 프로그램 아이콘 위로 끌어다 놓아 변환.
+- **대화형 모드**: CMD 창에 파일 경로를 끌어다 놓고 Enter로 변환.
+- **비밀번호 처리**: `1234` 비밀번호를 자동으로 풀고 변환 후 제거.
+- **자동 저장**: 변환된 파일은 로컬 바탕화면(`C:\Users\[사용자]\Desktop`)에 저장.
+- **오류 처리**: 파일 잠금, 손상, 또는 비밀번호 오류 시 사용자 친화적 메시지 출력.
 
-또는, CMD 아이콘 위로 변환하고자 하는 여러 엑셀 파일을 끌어다 놓는 것으로 변환
+## 사용 방법
 
+### 1. 자동 모드 (Drag-n-Drop)
 
-나머지 설명
----
-Windows Defender가 보안 위협을 감지하여 실행 금지, 또는 강제 삭제 하는 것에 대하여 수정이 필요함...
+1. 변환할 `.xlsx`, `.xls`, `.csv` 파일을 선택.
+2. 파일을 `ExcelConverter.exe` 아이콘 위로 끌어다 놓음.
+3. 변환된 `.xls` 파일이 바탕화면에 저장됨.
+4. 작업 완료 후 Enter 키로 종료.
 
-Microsoft Office 또는 Excel을 사용할 수 없는 환경(미설치, 미라이센스)에서 절대적으로 사용 불가능한 프로그램입니다.
+### 2. 대화형 모드 (CMD)
 
-또한 OneDrive에 공유된 파일이면서, 잠금 처리된 파일이라면 변형이 불가능합니다.
+1. CMD에서 `dist\ExcelConverter.exe` 실행.
+2. 변환할 파일을 CMD 창에 끌어다 놓고 Enter 입력.
+3. 변환된 `.xls` 파일이 바탕화면에 저장됨.
+4. `exit` 또는 `quit` 입력으로 종료.
 
-**이후 이 프로그램이 정상적으로 작동하지 않는다면, 백그라운드의 엑셀을 모두 강제 종료 하여야 합니다.**
+### 추가 명령어
 
+- `--help`: 도움말 표시.
+- `clear`: 콘솔 화면 지우기.
+- `exit`/`quit`: 프로그램 종료.
 
-만드는 방법...
----
-해당 코드의 컴파일 코드는 아래와 같습니다.
+## 문제점 및 해결책
 
-~~pyinstaller --onefile --console --icon="icon.ico" --name="Excel_to_XLS_Converter" converter.py~~
+### 1. Windows Defender 차단
+
+- **문제**: Defender가 `.exe`를 의심스러운 파일로 인식해 차단하거나 삭제.
+- **해결**:
+  - Windows 보안 → 바이러스 및 위협 방지 → 허용된 항목 → `ExcelConverter.exe` 추가.
+  - Microsoft에 false positive 보고: Windows Defender 제출.
+  - `.exe`를 로컬 폴더(예: `C:\Users\[사용자]\Desktop`)로 이동해 실행.
+  - 코드 서명(옵션): `signtool` 사용(별도 인증서 필요).
+
+### 2. OneDrive 동기화 문제
+
+- **문제**: OneDrive 폴더(`C:\Users\[사용자]\OneDrive\문서\projects`)에서 파일 잠금 발생.
+- **해결**:
+  - 프로젝트 파일(`converter.py`, `icon.ico`)과 `.exe`를 로컬 폴더(예: `C:\Users\[사용자]\Desktop`)로 이동.
+  - OneDrive 동기화 비활성화 후 재시도.
+
+### 3. Microsoft Excel 미설치
+
+- **문제**: Excel이 설치되지 않았거나 라이선스가 없으면 작동 불가.
+- **해결**: Microsoft Excel 설치 및 활성화 확인.
+
+### 4. 실행 파일 작동 실패
+
+- **문제**: `.exe` 실행 시 콘솔 출력 없음 또는 Drag-n-Drop 실패.
+- **해결**:
+  - CMD에서 실행: `dist\ExcelConverter.exe test.xlsx`로 테스트.
+  - 오류 로그 확인: CMD에 표시된 오류 메시지 확인.
+  - 백그라운드 Excel 프로세스 종료: 작업 관리자에서 `EXCEL.EXE` 종료.
+  - PyInstaller 재빌드: 위 명령어로 캐시 정리 후 재생성.
+
+## 설치 및 설정
+
+### 요구사항
+
+- **운영체제**: Windows (Microsoft Excel 설치 필수).
+- **소프트웨어**:
+  - Python 3.8 이상.
+  - Visual Studio Code (권장, 다른 IDE도 가능).
+  - Microsoft Excel (라이선스 필요, 설치되지 않은 환경에서는 작동 불가).
+- **의존성**:
+  - `pyinstaller`: 실행 파일 생성.
+  - `colorama`: 콘솔 색상 출력.
+  - `pywin32`: Excel COM 객체 처리.
+
+### 설치 단계
+
+1. **Python 설치**:
+
+   - Python 공식 사이트에서 Python 3.8 이상을 다운로드 및 설치.
+   - 설치 시 "Add Python to PATH" 옵션을 체크하세요.
+   - 설치 확인:
+
+     ```bash
+     python --version
+     ```
+
+     출력 예: `Python 3.10.0`
+
+2. **Visual Studio Code 설치**:
+
+   - VS Code 공식 사이트에서 다운로드 및 설치.
+   - Python 확장 설치:
+     - VS Code 실행 → 확장(Extensions) → `Python` 검색 → Microsoft 제공 Python 확장 설치.
+   - Python 인터프리터 설정:
+     - VS Code에서 `Ctrl+Shift+P` → `Python: Select Interpreter` → 설치된 Python 경로 선택.
+
+3. **의존성 설치**:
+
+   - CMD 또는 VS Code 터미널에서 다음 명령어 실행:
+
+     ```bash
+     pip install pyinstaller colorama pywin32
+     ```
+   - 설치 확인:
+
+     ```bash
+     pip show pyinstaller
+     pip show colorama
+     pip show pywin32
+     ```
+
+4. **프로젝트 설정**:
+
+   - 프로젝트 폴더: `C:\Users\[사용자]\OneDrive\문서\projects`
+   - 필수 파일:
+     - `converter.py`: 메인 프로그램.
+     - `icon.ico`: 실행 파일 아이콘 (프로젝트 폴더에 위치).
+
+## 실행 파일(.exe) 생성
+
+프로그램을 독립 실행 가능한 `.exe` 파일로 변환하려면 PyInstaller를 사용합니다.
+
+### 명령어
+
+```bash
+cd C:\Users\[사용자]\OneDrive\문서\projects
+pyinstaller --onefile --console --noupx --clean --icon=icon.ico --name=ExcelConverter converter.py
 ```
-pyinstaller --onefile --icon=icon.ico --noupx --clean --name=ExcelConverter.exe converter.py
-```
 
-~~[projects] 폴더 내의 [dist] 내의 실행 파일로 작업을 시작합니다...~~
+### 옵션 설명
 
-~~[projects] 폴더 바깥의 파일은 모두 구버전입니다...~~
+- `--onefile`: 단일 `.exe` 파일로 압축.
+- `--console`: 콘솔 창을 유지하여 Drag-n-Drop 및 대화형 모드 지원.
+- `--noupx`: UPX 압축 비활성화로 Windows Defender 경고 최소화.
+- `--clean`: 이전 빌드 캐시 삭제로 안정성 확보.
+- `--icon=icon.ico`: 실행 파일에 사용자 지정 아이콘 적용.
+- `--name=ExcelConverter`: 출력 파일명을 `ExcelConverter.exe`로 지정.
 
+### 출력
 
-Python 및 Visual Studio Code 설치 방법 설명 추가 예정...
+- 생성된 파일: `C:\Users\[사용자]\OneDrive\문서\projects\dist\ExcelConverter.exe`
+- 실행: `dist\ExcelConverter.exe`를 더블클릭하거나 CMD에서 실행.
 
-Visual Studio Code 내 Python 연동을 위한 Pyinstaller 설치 방법 추가 예정...
+## 문의
 
-의존성 설치 방법 추가 예정...
-
-아이콘(icon.ico) 설정 방법 추가 예정...
-
-
-```
-python --version
-pip install pyinstaller
-pip show pyinstaller
-pip install colorama pywin32
-```
-
-
-기타...
-
-```
-pyinstaller --onefile --console --icon="icon.ico" --name="Excel_to_XLS_Converter" --log-level DEBUG converter.py
-```
+- 작성자: DongHyun LEE
+- 연락처: ~~-~~
+- 이슈: GitHub Issues에 문제 제보 또는 개선 제안.
