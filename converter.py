@@ -5,8 +5,8 @@ Excel/CSV to XLS (Excel 97-2003) Converter
 Drag-n-Drop을 지원하며, '1234' 암호를 자동으로 처리하고 제거합니다.
 
 - 작성자: DongHyun LEE
-- 버전: 1.5.5
-- 최종 수정일: 2025-10-22
+- 버전: 1.6.0 beta
+- 최종 수정일: 2025-10-24
 """
 
 import sys
@@ -20,8 +20,8 @@ import pythoncom  # COM 초기화를 위해 추가
 
 # --- 상수 정의 (Constants) ---
 __author__ = "DongHyun LEE"
-__version__ = "1.5.5"
-__last_modified__ = "2025-10-22"
+__version__ = "1.6.0 beta"
+__last_modified__ = "2025-10-24"
 
 # Excel 파일 포맷 상수
 XL_EXCEL8 = 56  # .xls (Excel 97-2003)
@@ -33,14 +33,15 @@ DEFAULT_PASSWORD = "1234"
 
 # 색상 정의 (Color Palette)
 init(autoreset=True)
-C_TEXT = Fore.LIGHTWHITE_EX + Back.BLACK  # 흰색을 부드러운 밝은 회색으로 변경
-C_TITLE = Style.BRIGHT + Fore.LIGHTCYAN_EX + Back.BLACK  # 청록색을 더 부드러운 톤으로
-C_AUTHOR = Style.BRIGHT + Fore.LIGHTYELLOW_EX + Back.BLACK  # 노란색 유지 (이미 부드러움)
-C_SUCCESS = Style.BRIGHT + Fore.LIGHTGREEN_EX + Back.BLACK  # 초록색을 부드러운 톤으로
-C_ERROR = Style.BRIGHT + Fore.LIGHTRED_EX + Back.BLACK  # 빨간색을 부드러운 톤으로
-C_HELP = Fore.LIGHTBLACK_EX + Back.BLACK  # 도움말 색상 유지
-C_CMD = Fore.LIGHTMAGENTA_EX + Back.BLACK  # 명령어 색상을 부드러운 톤으로
-C_WARN = Fore.LIGHTYELLOW_EX + Back.BLACK  # 경고 색상 유지
+C_TEXT = Fore.LIGHTWHITE_EX + Back.BLACK
+C_TITLE = Style.BRIGHT + Fore.LIGHTCYAN_EX + Back.BLACK
+C_AUTHOR = Style.BRIGHT + Fore.LIGHTYELLOW_EX + Back.BLACK
+C_SUCCESS = Style.BRIGHT + Fore.LIGHTGREEN_EX + Back.BLACK
+C_ERROR = Style.BRIGHT + Fore.LIGHTRED_EX + Back.BLACK
+C_HELP = Fore.LIGHTBLACK_EX + Back.BLACK
+C_CMD = Fore.LIGHTMAGENTA_EX + Back.BLACK
+C_WARN = Fore.LIGHTYELLOW_EX + Back.BLACK
+C_COUNTDOWN = Style.BRIGHT + Fore.LIGHTBLUE_EX + Back.BLACK  # 카운터 색상: 가시성 좋고 피로 적은 부드러운 파란색
 
 # 로깅 설정 (파일 생성 제거, 콘솔에만 출력)
 logging.basicConfig(
@@ -195,7 +196,7 @@ def open_workbook_silent(excel, file_path: str):
                 return wb
             except Exception as e:
                 logging.error(f"파일 열기 실패: {e}")
-                raise ValueError(f"파일을 열 수 없습니다. 해결: 파일이 손상되었거나, 암호가 '1234'가 아닌지, Excel에서 이미 열려 있는지 확인하세요.")
+                raise ValueError(f"파일을 열 수 없습니다. 해결: 파일이 손상되었거나, 암호가 '1234'가 아닌지, Excel에서 이미 열려 있는지, 또는 시스템 권한 문제를 확인하세요. 추가: 다른 Excel 인스턴스가 실행 중일 수 있음.")
 
 def remove_password(wb):
     """워크북 암호를 제거합니다. (안정성: 속성 확인)"""
@@ -230,7 +231,7 @@ def save_as_xls(wb, output_path: str):
             print(C_HELP + "  - 기존 파일 삭제 완료.")
             logging.info("기존 파일 삭제 성공.")
         except OSError as e:
-            print(C_WARN + f"  - 파일 삭제 실패 (사용 중). 해결: '{os.path.basename(output_path)}' 파일을 Excel에서 닫아주세요.")
+            print(C_WARN + f"  - 파일 삭제 실패 (사용 중). 해결: '{os.path.basename(output_path)}' 파일을 Excel에서 닫아주세요. 추가: 파일이 다른 프로그램에서 잠겨 있거나, 권한 부족일 수 있음.")
             logging.warning(f"파일 삭제 실패: {e}")
             final_output_path = get_alternative_filename(output_path)
             print(C_HELP + f"  - 대체 이름 사용: {os.path.basename(final_output_path)}")
@@ -247,7 +248,7 @@ def save_as_xls(wb, output_path: str):
         return final_output_path
     except Exception as e:
         logging.error(f"저장 실패: {e}")
-        raise RuntimeError(f"파일 저장 실패. 해결: 바탕화면에 쓰기 권한이 있는지, 또는 Excel에서 파일이 열려 있는지 확인하세요.")
+        raise RuntimeError(f"파일 저장 실패. 해결: 바탕화면에 쓰기 권한이 있는지, 또는 Excel에서 파일이 열려 있는지, 디스크 공간 부족인지 확인하세요. 추가: 네트워크 드라이브나 클라우드 동기화 충돌 가능성.")
 
 def close_resources(wb=None, excel=None):
     """리소스 정리 (안정성: 무조건 실행)"""
@@ -263,15 +264,15 @@ def close_resources(wb=None, excel=None):
     except Exception as e:
         logging.warning(f"리소스 정리 중 오류: {e}")
 
-def process_file(excel, file_path: str):
-    """단일 파일 처리 (모듈화: 독립 로직)"""
+def process_file(excel, file_path: str) -> bool:
+    """단일 파일 처리 (모듈화: 독립 로직, 성공 여부 반환)"""
     logging.info(f"파일 처리 시작: {file_path}")
     print(C_TEXT + f"\n[ 작업 시작 ] \"{os.path.basename(file_path)}\"")
     
     wb = None
     try:
         if not os.path.exists(file_path) or not os.path.isfile(file_path):
-            raise FileNotFoundError(f"파일 없음: {file_path}. 해결: 파일 경로를 확인하고, 파일이 실제로 존재하는지 확인하세요.")
+            raise FileNotFoundError(f"파일 없음: {file_path}. 해결: 파일 경로를 확인하고, 파일이 실제로 존재하는지 확인하세요. 추가: 파일이 이동되었거나 삭제되었을 수 있음.")
         
         wb = open_workbook_silent(excel, file_path)
         remove_password(wb)
@@ -285,9 +286,7 @@ def process_file(excel, file_path: str):
         print(C_SUCCESS + "\n[ 성공 ]")
         print(C_SUCCESS + f"  - 저장: {final_output_path}")
         
-        os.startfile(desktop_path)
-        print(C_HELP + "  - 바탕화면 열림.")
-        logging.info("작업 성공.")
+        return True  # 성공
     
     except FileNotFoundError as e:
         print(C_ERROR + f"  오류: {e}")
@@ -302,13 +301,15 @@ def process_file(excel, file_path: str):
         print(C_ERROR + "\n[ 실패 ]")
         print(C_ERROR + f"  - 파일: {file_path}")
         print(C_ERROR + f"  - 상세: {e}")
-        print(C_ERROR + "  해결: Microsoft Excel이 설치되어 있는지, 파일이 손상되었는지, 또는 OneDrive 동기화로 잠겼는지 확인하세요.")
+        print(C_ERROR + "  해결: Microsoft Excel이 설치되어 있는지, 파일이 손상되었는지, 또는 OneDrive 동기화로 잠겼는지 확인하세요. 추가: 시스템 메모리 부족이나 COM 인터페이스 충돌 가능성.")
         logging.error(f"예외: {traceback.format_exc()}")
     
     finally:
         if wb:
             wb.Close(SaveChanges=False)
             wb = None
+    
+    return False  # 실패
 
 # --- 메인 모듈 (Main Module) ---
 
@@ -332,12 +333,32 @@ def main():
                 return
 
             print(C_TITLE + f"[ 자동 모드 ] {len(args)}개 파일 처리.\n")
-            for file_path in args:
-                process_file(excel, file_path)
+            all_success = True
+            desktop_opened = False
             
-            print(C_SUCCESS + "완료.")
-            input(C_HELP + "Enter로 종료...")
-            logging.info("자동 모드 완료.")
+            for file_path in args:
+                success = process_file(excel, file_path)
+                if success and not desktop_opened:
+                    desktop_path = get_desktop_path()
+                    os.startfile(desktop_path)
+                    print(C_HELP + "  - 바탕화면 열림.")
+                    desktop_opened = True
+                all_success &= success
+            
+            if all_success:
+                print(C_SUCCESS + "완료.")
+                print(C_COUNTDOWN + "   3초 뒤 창이 닫힙니다...")
+                time.sleep(1)
+                print(C_COUNTDOWN + "  2초 뒤 창이 닫힙니다..")
+                time.sleep(1)
+                print(C_COUNTDOWN + " 1초 뒤 창을 닫습니다.")
+                time.sleep(1)
+                print(C_COUNTDOWN + "창을 닫습니다")
+                logging.info("자동 모드 성공 - 자동 종료.")
+            else:
+                print(C_ERROR + "일부 실패 발생.")
+                input(C_HELP + "Enter로 종료...")
+                logging.info("자동 모드 일부 실패 - 입력 대기.")
 
         else:
             print_help()
@@ -362,13 +383,17 @@ def main():
                     elif cmd == '--help':
                         print_help()
                     else:
-                        process_file(excel, user_input)
+                        success = process_file(excel, user_input)
+                        if success:
+                            desktop_path = get_desktop_path()
+                            os.startfile(desktop_path)
+                            print(C_HELP + "  - 바탕화면 열림.")
                 
                 except EOFError:
                     logging.info("EOF 종료.")
                     break
                 except Exception as e:
-                    print(C_ERROR + f"오류: {e}. 해결: 입력한 파일 경로가 올바른지 확인하세요.")
+                    print(C_ERROR + f"오류: {e}. 해결: 입력한 파일 경로가 올바른지 확인하세요. 추가: 입력 값이 유효하지 않거나 시스템 오류.")
                     logging.error(f"대화형 오류: {e}")
     
     finally:
